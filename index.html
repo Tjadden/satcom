@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellitkommunkation Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-image: url('sky1.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: white;
+        }
+        .question {
+            margin-bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        h1, h2 {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <h1>Satellitkommunkation Quiz</h1>
+    <div id="questionSelection">
+        <h2>Välj antal frågor:</h2>
+        <button onclick="startQuiz(6)">6 frågor</button>
+        <button onclick="startQuiz(12)">12 frågor</button>
+        <button onclick="startQuiz(18)">18 frågor</button>
+        <button onclick="startQuiz(24)">24 frågor</button>
+        <button onclick="startQuiz(30)">30 frågor</button>
+    </div>
+    <div id="quiz" style="display: none;"></div>
+    <button id="submit" style="display: none;">Lämna in svar</button>
+    <div id="results"></div>
+    <button id="restart" style="display: none;" onclick="restartQuiz()">Starta om quizet</button>
+
+    <script>
+        const quizData = [
+            {
+                question: "Vilken typ av satellit används oftast för global kommunikation?",
+                options: ["LEO", "MEO", "GEO", "HEO"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad står 'GPS' för i satellitnavigering?",
+                options: ["Global Positioning System", "Geographical Placement Service", "General Purpose Satellite", "Global Planetary Surveillance"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilken frekvens används vanligtvis inte för satellitkommunkation?",
+                options: ["C-band", "Ku-band", "Ka-band", "AM-band"],
+                correctAnswer: 3
+            },
+            {
+                question: "Vad står 'LEO' för i satellitsammanhang?",
+                options: ["Low Earth Orbit", "Lunar Exploration Objective", "Long-range Earth Observatory", "Laser-Enabled Operations"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilken organisation lanserade det första GPS-satellitsystemet?",
+                options: ["NASA", "ESA", "US Department of Defense", "ROSCOSMOS"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är huvudfördelen med GEO-satelliter?",
+                options: ["Låg latens", "Hög bandbredd", "Konstant position relativt jorden", "Låg kostnad"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vilken typ av satellit används ofta för väderprognoser?",
+                options: ["Kommunikationssatellit", "Spionsatellit", "Vädersatellit", "Navigationssatellit"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'Doppler-effekten' i relation till satellitkommunkation?",
+                options: ["Frekvensskift på grund av rörelse", "Signalförstärkning", "Atmosfärisk störning", "Antenndesign"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilken är den vanligaste orsaken till signalförlust i satellitkommunkation?",
+                options: ["Regndämpning", "Solaktivitet", "Jordmagnetism", "Luftfuktighet"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vad är 'uplink' i satellitkommunkation?",
+                options: ["Signal från jorden till satelliten", "Signal från satelliten till jorden", "Satellit-till-satellit-kommunikation", "Jordbaserad signalförstärkning"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilket företag grundade Starlink-projektet?",
+                options: ["Amazon", "Google", "SpaceX", "Microsoft"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är huvudsyftet med VSAT-teknologi?",
+                options: ["Militär övervakning", "Tv-sändningar", "Tvåvägskommunikation för företag", "Djuprymdsforskning"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vilken typ av antenn används ofta för satellitmottagning i hemmet?",
+                options: ["Yagi-antenn", "Parabolantenn", "Dipol-antenn", "Loop-antenn"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vad är 'geostationär bana'?",
+                options: ["En bana runt månen", "En bana 35 786 km över ekvatorn", "En bana runt Mars", "En bana 100 km över jorden"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken organisation ansvarar för tilldelning av satellitfrekvenser globalt?",
+                options: ["FN", "NASA", "ITU", "WTO"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är huvudfördelen med LEO-satelliter jämfört med GEO-satelliter?",
+                options: ["Högre bandbredd", "Lägre latens", "Större täckningsområde", "Längre livslängd"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vad är 'transponder' i en kommunikationssatellit?",
+                options: ["Solpanel", "Mottagare och sändare", "Styrsystem", "Antenn"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilket fenomen kan orsaka störningar i satellitsignaler under intensiv solaktivitet?",
+                options: ["Jordbävningar", "Vulkanutbrott", "Geomagnetiska stormar", "Tsunamis"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är huvudsyftet med INMARSAT-systemet?",
+                options: ["Militär kommunikation", "Marin kommunikation", "Flygplanskommunikation", "Rymdutforskning"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av kodning används ofta för att korrigera fel i satellitsignaler?",
+                options: ["Morsekod", "Binär kod", "Reed-Solomon-kod", "ASCII-kod"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'bent pipe'-teknologi inom satellitkommunkation?",
+                options: ["En typ av antenn", "En metod för signalförstärkning", "En typ av satellitbana", "En metod för signalåtersändning"],
+                correctAnswer: 3
+            },
+            {
+                question: "Vad är 'fading' i satellitkommunkation?",
+                options: ["Signalförstärkning", "Signalförsvagning över tid", "Frekvensökning", "Antennjustering"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av satellit används för direktsänd TV?",
+                options: ["LEO", "MEO", "GEO", "HEO"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'footprint' i satellitsammanhang?",
+                options: ["Satellitens vikt", "Området på jorden som täcks av satellitens signal", "Satellitens storlek", "Antennens form"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vad är 'apogee' för en satellit?",
+                options: ["Lägsta punkt i banan", "Högsta punkt i banan", "Genomsnittlig höjd", "Banans lutning"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken organisation lanserade det europeiska Galileo-navigationssystemet?",
+                options: ["NASA", "ESA", "ROSCOSMOS", "JAXA"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vad är huvudsyftet med TDRS-satelliter?",
+                options: ["Väderprognoser", "Militär övervakning", "Kommunikation med rymdfarkoster", "Internetåtkomst"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vilken frekvens används ofta för satellittelefoni?",
+                options: ["L-band", "S-band", "X-band", "K-band"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vad står 'VSAT' för?",
+                options: ["Very Small Aperture Terminal", "Variable Satellite Access Technology", "Vertical Scanning Antenna Transmitter", "Virtual Satellite Array Technique"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilken typ av modulering används ofta i digital satellitkommunkation?",
+                options: ["AM", "FM", "QPSK", "SSB"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'space debris' och varför är det ett problem för satelliter?",
+                options: ["Kosmisk strålning", "Rymdskrot som kan kollidera med satelliter", "Solstormar", "Atmosfäriska störningar"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken organisation övervakar och spårar rymdskrot?",
+                options: ["NASA", "ESA", "US Space Force", "NORAD"],
+                correctAnswer: 3
+            },
+            {
+                question: "Vad är 'Kessler syndrome'?",
+                options: ["En typ av satellitbana", "En teori om kaskadkollisioner i omloppsbana", "En sjukdom som drabbar astronauter", "En metod för satellitnavigering"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken är den vanligaste orsaken till att satelliter tas ur drift?",
+                options: ["Bränslebrist", "Elektronikfel", "Kollisioner", "Solstormar"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vad är 'station keeping' för en satellit?",
+                options: ["Underhåll på marken", "Att hålla satelliten i rätt position", "Kommunikation med markstationen", "Datalagring ombord"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av satellit används för att studera jordens magnetfält?",
+                options: ["Kommunikationssatellit", "Vädersatellit", "Vetenskaplig satellit", "Spionsatellit"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är huvudfunktionen hos en 'repeater' i en kommunikationssatellit?",
+                options: ["Signalförstärkning", "Frekvensomvandling", "Felkorrigering", "Kryptering"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av antenn används ofta på markstationer för kommunikation med geostationära satelliter?",
+                options: ["Yagi-antenn", "Dipol-antenn", "Parabolantenn", "Helix-antenn"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'uplink power control' i satellitkommunkation?",
+                options: ["Justering av sändningseffekt från jorden", "Kontroll av satellitens solpaneler", "Reglering av nedlänkens bandbredd", "Styrning av satellitens position"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilken organisation lanserade det ryska GLONASS-navigationssystemet?",
+                options: ["ROSCOSMOS", "NASA", "ESA", "CNSA"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vad är huvudsyftet med 'crosslink'-kommunikation mellan satelliter?",
+                options: ["Att minska latensen", "Att öka täckningsområdet", "Att spara bränsle", "Att förbättra signalkvaliteten"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av bana används av satelliter i Iridium-konstellationen?",
+                options: ["GEO", "MEO", "LEO", "HEO"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'frequency reuse' i satellitkommunkation?",
+                options: ["Att använda samma frekvens för upp- och nedlänk", "Att använda samma frekvens i olika geografiska områden", "Att växla mellan olika frekvenser", "Att öka bandbredden genom att kombinera frekvenser"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken effekt har jonosfären på satellitsignaler?",
+                options: ["Förstärkning", "Refraktion", "Absorption", "Polarisation"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vad är huvudfördelen med Ka-band jämfört med Ku-band för satellitkommunkation?",
+                options: ["Lägre latens", "Högre bandbredd", "Bättre vädertålighet", "Längre räckvidd"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av kodning används ofta för att skydda satellitsignaler mot störningar?",
+                options: ["Huffman-kodning", "Turbo-kodning", "Hamming-kodning", "Konvolutionskodning"],
+                correctAnswer: 3
+            },
+            {
+                question: "Vad är 'orbital inclination' för en satellit?",
+                options: ["Satellitens höjd över jorden", "Vinkeln mellan satellitens bana och ekvatorn", "Tiden det tar för satelliten att fullborda ett varv", "Satellitens hastighet i banan"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken organisation ansvarar för tilldelning av geostationära positioner?",
+                options: ["FN", "NASA", "ITU", "WMO"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'space weather' och hur påverkar det satelliter?",
+                options: ["Väderförhållanden på jorden", "Förändringar i solens aktivitet som kan störa satelliter", "Temperaturvariationer i rymden", "Meteoritskurar"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av satellit används för att övervaka havsnivåer och havsströmmar?",
+                options: ["Kommunikationssatellit", "Vädersatellit", "Oceanografisk satellit", "Navigationssatellit"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är huvudsyftet med 'satellite laser ranging'?",
+                options: ["Att mäta avståndet till satelliter med hög precision", "Att kommunicera med satelliter", "Att förstöra rymdskrot", "Att kartlägga jordens yta"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilken typ av antenn används ofta på satelliter för att skapa riktade strålar?",
+                options: ["Dipol-antenn", "Parabolantenn", "Phased array-antenn", "Yagi-antenn"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'satellite time' och varför är det viktigt?",
+                options: ["Tiden det tar för en satellit att kretsa runt jorden", "En mycket exakt tidsreferens som används i GPS", "Satellitens livslängd", "Tiden mellan satellituppdateringar"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken organisation lanserade det kinesiska BeiDou-navigationssystemet?",
+                options: ["CNSA", "JAXA", "ISRO", "KARI"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vad är 'satellite constellation' och varför används det?",
+                options: ["En grupp av stjärnor", "En formation av samverkande satelliter", "En typ av satellitbana", "En metod för att spåra satelliter"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken effekt har atmosfärisk scintillation på satellitsignaler?",
+                options: ["Förstärkning", "Dämpning", "Snabb fluktuation i signalstyrka", "Frekvensskift"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'ground segment' i ett satellitsystem?",
+                options: ["Satellitens landningsplats", "Markbaserade antenner och kontrollcenter", "Jordens rotation", "Satellitens skugga på jorden"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av satellit används för att övervaka skogsbränder och vulkanutbrott?",
+                options: ["Spionsatellit", "Vädersatellit", "Jordobservationssatellit", "Kommunikationssatellit"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'satellite broadband' och hur skiljer det sig från traditionellt bredband?",
+                options: ["Det är snabbare", "Det använder satelliter istället för markbundna nätverk", "Det är alltid trådlöst", "Det är billigare"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken roll spelar 'telemetry' i satellitoperationer?",
+                options: ["Att styra satelliten", "Att mäta avståndet till satelliten", "Att samla in och överföra data om satellitens hälsa och funktion", "Att kryptera kommunikationen"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'orbital decay' och varför är det ett problem för satelliter i låg omloppsbana?",
+                options: ["Satellitens åldrande", "Gradvis minskning av banans höjd", "Förlust av kommunikation", "Rotation av satelliten"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken typ av satellit används för att övervaka jordbruk och skogstillväxt?",
+                options: ["Vädersatellit", "Spionsatellit", "Jordobservationssatellit", "Kommunikationssatellit"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'satellite phone' och hur skiljer det sig från en vanlig mobiltelefon?",
+                options: ["Det är mindre", "Det kommunicerar direkt med satelliter", "Det har längre batteritid", "Det är alltid 5G-kompatibelt"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken effekt har 'Faraday rotation' på satellitsignaler?",
+                options: ["Signalförstärkning", "Ändring av signalens polarisation", "Frekvensskift", "Signaldämpning"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vad är huvudsyftet med 'CubeSats'?",
+                options: ["Att ersätta stora satelliter", "Att ge studenter praktisk erfarenhet av rymdfart", "Att förbättra väderprognoser", "Att öka internethastigheten"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken organisation lanserade det indiska IRNSS-navigationssystemet?",
+                options: ["ISRO", "NASA", "ESA", "JAXA"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vad är 'satellite megaconstellations' och vilken oro har de väckt?",
+                options: ["Stora satelliter", "Tusentals små satelliter som kan störa astronomiska observationer", "Konstellationer av geostationära satelliter", "Satelliter som använder AI"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken roll spelar 'frequency hopping' i satellitkommunkation?",
+                options: ["Att öka bandbredden", "Att minska interferens och förbättra säkerheten", "Att spara energi", "Att förbättra signalkvaliteten"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vad är 'sun outage' i satellitkommunkation?",
+                options: ["När solen blockerar satellitsignalen", "När satelliten är i skuggan", "När solen laddar satellitens batterier", "När solen orsakar störningar i jonosfären"],
+                correctAnswer: 0
+            },
+            {
+                question: "Vilken typ av satellit används för att övervaka glaciärer och havsis?",
+                options: ["Vädersatellit", "Kommunikationssatellit", "Jordobservationssatellit", "Navigationssatellit"],
+                correctAnswer: 2
+            },
+            {
+                question: "Vad är 'satellite internet of things (IoT)' och hur skiljer det sig från traditionell IoT?",
+                options: ["Det är snabbare", "Det använder satelliter för att ansluta enheter globalt", "Det använder AI", "Det är alltid trådlöst"],
+                correctAnswer: 1
+            },
+            {
+                question: "Vilken effekt har 'multipath fading' på satellitsignaler?",
+                options: ["Signalförstärkning", "Signaldämpning", "Snabb fluktuation i signalstyrka", "Frekvensskift"],
+                correctAnswer: 2
+            },    {
+        question: "Vad är 'satellite drag' och hur påverkar det satelliter?",
+        options: ["Gravitationskraft från månen", "Atmosfäriskt motstånd som sänker satellitens bana", "Magnetisk dragningskraft från jorden", "Solvindens påverkan på satelliten"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken typ av satellit används för att övervaka ozonlagret?",
+        options: ["Kommunikationssatellit", "Vädersatellit", "Miljöövervakningssatellit", "Navigationssatellit"],
+        correctAnswer: 2
+    },
+    {
+        question: "Vad är 'satellite tethering' och vad är dess potentiella användningsområden?",
+        options: ["Att koppla ihop satelliter med kablar", "En metod för att ladda satelliter", "Att använda satelliter för att dra rymdfarkoster", "En typ av satellitformation"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vilken roll spelar 'satellite propulsion' i moderna satelliter?",
+        options: ["Att lansera satelliten", "Att justera och upprätthålla satellitens bana", "Att generera elektricitet", "Att förbättra kommunikationen"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är 'satellite synthetic aperture radar (SAR)' och vad används det till?",
+        options: ["En typ av satellitantenn", "En teknik för högupplöst bildtagning genom moln och mörker", "Ett system för att undvika kollisioner", "En metod för att mäta atmosfärens sammansättning"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken organisation lanserade det japanska QZSS-navigationssystemet?",
+        options: ["JAXA", "ISRO", "NASA", "ESA"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vad är 'satellite quantum communication' och varför är det viktigt?",
+        options: ["Snabbare dataöverföring", "Kommunikation med utomjordingar", "Obrytbar kryptering för säker kommunikation", "Förbättrad väderprognostisering"],
+        correctAnswer: 2
+    },
+    {
+        question: "Vilken effekt har 'plasma bubbles' i jonosfären på satellitsignaler?",
+        options: ["Signalförstärkning", "Signaldämpning och scintillation", "Frekvensskift", "Ökad räckvidd"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är huvudsyftet med 'satellite servicing missions'?",
+        options: ["Att lansera nya satelliter", "Att reparera och uppgradera satelliter i omloppsbana", "Att samla in rymdskrot", "Att utföra vetenskapliga experiment"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken typ av satellit används för att detektera och övervaka skogsbränder globalt?",
+        options: ["Vädersatellit", "Kommunikationssatellit", "Jordobservationssatellit", "Navigationssatellit"],
+        correctAnswer: 2
+    },
+    {
+        question: "Vad är 'satellite-based augmentation system (SBAS)' och vad används det till?",
+        options: ["Att förbättra GPS-precision", "Att öka internethastigheten", "Att förbättra TV-sändningar", "Att övervaka rymdväder"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vilken roll spelar 'intersatellite links' i moderna satellitnätverk?",
+        options: ["Att koppla ihop satelliter fysiskt", "Att möjliggöra direkt kommunikation mellan satelliter", "Att förhindra kollisioner", "Att synkronisera satelliternas klockor"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är 'satellite albedo' och varför är det viktigt för jordobservation?",
+        options: ["Satellitens färg", "Mängden solljus som reflekteras från jorden", "Satellitens hastighet", "Satellitens energiförbrukning"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken typ av satellit används för att övervaka och kartlägga jordens gravitationsfält?",
+        options: ["Kommunikationssatellit", "Vädersatellit", "Gravitationssatellit", "Spionsatellit"],
+        correctAnswer: 2
+    },
+    {
+        question: "Vad är 'satellite laser communication' och vilka fördelar har det jämfört med traditionell radiokommunikation?",
+        options: ["Snabbare dataöverföring", "Längre räckvidd", "Lägre energiförbrukning", "Bättre vädertålighet"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vad är 'space-based solar power' och hur kan det påverka framtida satellitteknologi?",
+        options: ["Solpaneler på satelliter för egen drift", "Satelliter som samlar solenergi och skickar den till jorden", "En metod för att skydda satelliter från solen", "Solceller för att driva rymdstationer"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken roll spelar 'satellite-based interferometry' inom jordobservation?",
+        options: ["Att mäta avståndet mellan satelliter", "Att skapa högupplösta bilder genom att kombinera data från flera satelliter", "Att förbättra satelliternas kommunikation", "Att mäta atmosfärens sammansättning"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är 'satellite-based AIS' och vad används det till?",
+        options: ["Ett system för att spåra flygplan", "Ett system för att övervaka fartygstrafik globalt", "En metod för att kommunicera med ubåtar", "Ett nätverk för att styra drönare"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken effekt har 'ionospheric scintillation' på GNSS-signaler?",
+        options: ["Förstärker signalen", "Orsakar snabba fluktuationer i signalstyrka och fas", "Ökar signalens räckvidd", "Förbättrar positioneringsnoggrannheten"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är 'satellite-based earthquake early warning systems' och hur fungerar de?",
+        options: ["System som förutsäger jordbävningar", "Satelliter som detekterar seismiska vågor och varnar snabbt", "Markbaserade sensorer kopplade till satelliter", "System för att mäta plattektonik"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken roll spelar 'satellite-based atmospheric sounding' inom meteorologi?",
+        options: ["Att mäta ljudvågor i atmosfären", "Att skapa vertikala profiler av atmosfärens temperatur och fuktighet", "Att övervaka ozonlagret", "Att detektera luftföroreningar"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är 'satellite-on-satellite interferometry' och vad används det till?",
+        options: ["Att mäta avståndet mellan satelliter", "Att skapa 3D-kartor över jordens yta", "Att förbättra satelliternas kommunikation", "Att mäta gravitationsfältet med hög precision"],
+        correctAnswer: 3
+    },
+    {
+        question: "Vilken funktion har 'satellite-based augmentation systems' (SBAS) inom luftfarten?",
+        options: ["Att förbättra flygplanens kommunikation", "Att öka precisionen och integriteten hos GNSS-navigering", "Att övervaka vädret runt flygplatser", "Att styra flygtrafikledningen"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är 'satellite-based digital audio broadcasting' (DAB) och hur skiljer det sig från traditionell radio?",
+        options: ["Det använder satelliter istället för markbundna sändare", "Det erbjuder bättre ljudkvalitet och fler kanaler", "Det kräver speciella mottagare", "Alla ovanstående"],
+        correctAnswer: 3
+    },
+    {
+        question: "Vilken roll spelar 'inter-satellite optical communication' i moderna satellitnätverk?",
+        options: ["Att möjliggöra snabbare dataöverföring mellan satelliter", "Att minska energiförbrukningen", "Att förbättra kommunikationen med marken", "Att mäta avståndet mellan satelliter"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vad är huvudfunktionen hos en 'teleport' inom satellitkommunikation?",
+        options: ["Att transportera satelliter", "Att fungera som en central hubb för upp- och nedlänkar", "Att reparera satelliter", "Att övervaka rymdväder"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken typ av antenn används oftast i stora markstationer för kommunikation med geostationära satelliter?",
+        options: ["Yagi-antenn", "Dipol-antenn", "Parabolantenn", "Helix-antenn"],
+        correctAnswer: 2
+    },
+    {
+        question: "Vad är 'frequency up-conversion' i en markstation?",
+        options: ["Att öka signalens frekvens för upplänk", "Att förstärka signalen", "Att ändra signalens polarisation", "Att komprimera data"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vilken roll spelar 'Network Operations Center' (NOC) i satellitkommunikation?",
+        options: ["Att lansera satelliter", "Att övervaka och styra nätverket", "Att tillverka satellitutrustning", "Att utbilda astronauter"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är huvudsyftet med en 'tracking antenna' på en markstation?",
+        options: ["Att följa satellitens rörelse", "Att mäta signalstyrkan", "Att kryptera data", "Att generera elektricitet"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vilken funktion har en 'Low Noise Amplifier' (LNA) i en markstation?",
+        options: ["Att minska störningar", "Att förstärka svaga signaler från satelliten", "Att kyla antennen", "Att generera upplänksignaler"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är 'Doppler shift compensation' i en markstation?",
+        options: ["Att justera för frekvensskift orsakat av satellitens rörelse", "Att kompensera för atmosfäriska störningar", "Att korrigera för jordens rotation", "Att justera antennens position"],
+        correctAnswer: 0
+    },
+    {
+        question: "Vilken roll spelar 'VSAT terminals' i satellitkommunikation?",
+        options: ["Att övervaka rymdväder", "Att ge slutanvändare direkt tillgång till satellitkommunikation", "Att styra satelliter", "Att mäta atmosfärens sammansättning"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vad är huvudfunktionen hos en 'satellite simulator' i en markstation?",
+        options: ["Att träna operatörer", "Att testa utrustning och procedurer", "Att generera falska satellitsignaler", "Att beräkna satellitbanor"],
+        correctAnswer: 1
+    },
+    {
+        question: "Vilken roll spelar 'redundancy' i design av markstationer?",
+        options: ["Att minska energiförbrukningen", "Att öka signalstyrkan", "Att säkerställa kontinuerlig drift vid utrustningsfel", "Att förbättra datakryptering"],
+        correctAnswer: 2
+    },
+    {
+    question: "Vilken är den ungefärliga omloppstiden för en geostationär satellit?",
+    options: ["1 timme", "12 timmar", "24 timmar", "7 dagar"],
+    correctAnswer: 2
+},
+{
+    question: "Varför placeras geostationära satelliter över ekvatorn?",
+    options: ["För att maximera solenergin", "För att matcha jordens rotation", "För att undvika rymdskrot", "För att minska uppskjutningskostnader"],
+    correctAnswer: 1
+},
+{
+    question: "Vilken typ av tjänst är geostationära satelliter INTE lämpliga för?",
+    options: ["TV-sändningar", "Väderprognoser", "GPS-navigation", "Långdistanstelefoni"],
+    correctAnswer: 2
+},
+{
+    question: "Vad är en nackdel med geostationära satelliter jämfört med LEO-satelliter?",
+    options: ["Högre latens", "Mindre täckningsområde", "Kortare livslängd", "Lägre bandbredd"],
+    correctAnswer: 0
+},
+{
+    question: "Hur många geostationära satelliter behövs teoretiskt för att täcka hela jorden (förutom polområdena)?",
+    options: ["1", "3", "6", "12"],
+    correctAnswer: 1
+},
+{
+    question: "Vad kallas den punkt i rymden där en geostationär satellit placeras?",
+    options: ["Lagrangepunkt", "Geostationär punkt", "Clarke-bältet", "Geopunkt"],
+    correctAnswer: 2
+},
+{
+    question: "Vilken effekt har 'station-keeping' på geostationära satelliter?",
+    options: ["Ökar deras höjd", "Håller dem på plats", "Ökar deras hastighet", "Minskar deras energiförbrukning"],
+    correctAnswer: 1
+},
+{
+    question: "Varför är geostationära satelliter inte effektiva för polära regioner?",
+    options: ["För kallt klimat", "För låg elevation", "För mycket rymdskrot", "För stark magnetfält"],
+    correctAnswer: 1
+},{
+    question: "Vad är den huvudsakliga fördelen med geostationära satelliter?",
+    options: ["Låg latens", "Hög bandbredd", "De verkar stationära från jorden", "Låg kostnad"],
+    correctAnswer: 2
+}
+        ];
+
+        let selectedQuestions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = [];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function shuffleQuestions() {
+            for (let i = quizData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+            }
+        }
+
+        function startQuiz(numQuestions) {
+            document.getElementById('questionSelection').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            document.getElementById('submit').style.display = 'block';
+
+            shuffleQuestions();
+            selectedQuestions = quizData.slice(0, Math.min(numQuestions, quizData.length));
+            currentQuestion = 0;
+            score = 0;
+            userAnswers = [];
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const quizContainer = document.getElementById("quiz");
+            const question = selectedQuestions[currentQuestion];
+            
+            let quizHtml = `<div class="question">
+                <h2>Fråga ${currentQuestion + 1} av ${selectedQuestions.length}</h2>
+                <p>${question.question}</p>`;
+            
+            const shuffledOptions = shuffleArray([...question.options]);
+            for (let i = 0; i < shuffledOptions.length; i++) {
+                const originalIndex = question.options.indexOf(shuffledOptions[i]);
+                quizHtml += `<button onclick="selectAnswer(${originalIndex})">${shuffledOptions[i]}</button>`;
+            }
+            
+            quizHtml += `</div>`;
+            quizContainer.innerHTML = quizHtml;
+        }
+
+        function selectAnswer(answerIndex) {
+            userAnswers.push(answerIndex);
+            if (answerIndex === selectedQuestions[currentQuestion].correctAnswer) {
+                score++;
+            }
+            currentQuestion++;
+            if (currentQuestion < selectedQuestions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const resultsContainer = document.getElementById("results");
+            let resultsHtml = `<h2>Ditt resultat: ${score} av ${selectedQuestions.length}</h2>`;
+            
+            for (let i = 0; i < selectedQuestions.length; i++) {
+                const question = selectedQuestions[i];
+                const userAnswer = userAnswers[i];
+                
+                resultsHtml += `<div class="question" style="margin-bottom: 20px;">
+                    <p><strong>${i + 1}. ${question.question}</strong></p>
+                    <ul style="list-style-type: none; padding-left: 0;">`;
+                
+                for (let j = 0; j < question.options.length; j++) {
+                    const isUserAnswer = j === userAnswer;
+                    const isCorrectAnswer = j === question.correctAnswer;
+                    let style = "";
+                    let icon = "";
+                    
+                    if (isUserAnswer) {
+                        style = isCorrectAnswer ? "color: green;" : "color: red;";
+                        icon = isCorrectAnswer ? "✓" : "✗";
+                    }
+                    
+                    resultsHtml += `<li style="${style}">
+                        ${question.options[j]} ${isUserAnswer ? icon : ""}
+                    </li>`;
+                }
+                
+                resultsHtml += `</ul></div>`;
+            }
+            
+            resultsContainer.innerHTML = resultsHtml;
+            document.getElementById("submit").style.display = "none";
+            document.getElementById("restart").style.display = "block";
+        }
+
+        function restartQuiz() {
+            document.getElementById('questionSelection').style.display = 'block';
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('submit').style.display = 'none';
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('restart').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
